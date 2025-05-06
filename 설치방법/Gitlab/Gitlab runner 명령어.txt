@@ -1,0 +1,8 @@
+Gitlab runner 명령어 
+
+#Runer 목록 확인 
+sudo gitlab-runner list
+
+
+#Runner 상태 확인 
+sudo gitlab-runner verify

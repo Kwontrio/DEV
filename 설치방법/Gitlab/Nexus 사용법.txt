@@ -1,0 +1,37 @@
+Nexus 사용법
+
+http://192.168.0.68:8081  admin / kwon1021903
+
+curl 명령으로 upload 방법 
+
+- 파일로드
+curl -v -u [Nexus계정]:[Nexus계정Passwd] --upload-file nexus_up.txt http://192.168.0.68:8081/repository/[repository명]/[업로드파일명]
+예)  curl -v -u nexus_up:nexus_up --upload-file nexus_up.txt http://192.168.0.68:8081/repository/raw_release/nexus_up.txt
+
+-특정 디렉토리 생성해서 올리기 
+curl -v -u [Nexus계정]:[Nexus계정Passwd] --upload-file nexus_up.txt http://192.168.0.68:8081/repository/[repository명]/[디렉토리명]/[업로드파일명]
+예)  curl -v -u nexus_up:nexus_up --upload-file nexus_up.txt http://192.168.0.68:8081/repository/raw_release/testupload/nexus_up.txt
+
+=------------------------------------------------------------------------
+
+Nexus 상태확인 
+
+웹 ui접속확인 
+curl -X GET http://192.168.0.68:8081/service/rest/v1/status
+
+systemd로 확인 
+systemctl status nexus
+
+ 
+Nexus 실행파일위치 
+/opt/nexus/nexus-3.41.1-01/bin
+
+
+시스템로그 확인 
+/opt/nexus/sonatype-work/nexus3/log/nexus.log
+
+로그확인 명령
+tail -f /opt/nexus/sonatype-work/nexus3/log/nexus.log
+
+8081포트 열려있는지 확인방법
+ss -tnlp | grep 8081

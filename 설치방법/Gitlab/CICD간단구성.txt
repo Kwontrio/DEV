@@ -1,0 +1,278 @@
+
+qnap TS-873a Gitlab으로 CICD 시스템을 설치하려고해 
+
+가장 빠르게 설치할수 있는 방법으로 알려주는데 
+
+gitlab, gitlabrunner , gitlab build  각각 설치방법을 자세하게 알려주는데 
+모두다 root권한으로 설치할거야 
+설치하고 웹사이트들어가서 보는법까지 알려주고 간단한 CICD 까지 만들어볼거야 
+
+자세하게 알려줘 
+
+=============================================================
+qnap TS-873a Gitlab으로 CICD 시스템을 설치하려고해 
+
+가장 빠르게 설치할수 있는 방법으로 알려주는데 
+
+gitlab, gitlabrunner , gitlab build  각각 설치방법을 자세하게 알려주는데 
+모두다 root권한으로 설치할거야 
+설치하고 웹사이트들어가서 보는법까지 알려주고 간단한 CICD 까지 만들어볼거야 
+
+자세하게 알려줘 
+
+
+ChatGPT의 말:
+아래는 QNAP TS-873A에서 GitLab, GitLab Runner, GitLab Build 시스템을 가장 빠르게 설치하고 간단한 CI/CD 파이프라인을 구성하는 방법입니다. 모든 설치는 Root 권한으로 진행합니다.
+
+1. GitLab 설치
+Root로 수행
+GitLab을 설치하여 웹 인터페이스와 CI/CD 관리 시스템을 운영합니다.
+
+시스템 준비:
+
+RHEL 9 기반 서버에서 GitLab을 설치합니다.
+
+bash
+복사
+편집
+sudo dnf update -y
+sudo dnf install -y curl policycoreutils-python-utils openssh-server
+GitLab 패키지 레포지토리 설정:
+
+bash
+복사
+편집
+curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.rpm.sh | sudo bash
+GitLab 설치:
+
+외부 URL을 http://<VM_IP>로 설정합니다.
+
+bash
+복사
+편집
+sudo EXTERNAL_URL="http://<VM_IP>" dnf install -y gitlab-ee
+sudo EXTERNAL_URL="http://192.168.0.74" dnf install -y gitlab-ee
+
+GitLab 서비스 시작:
+
+bash
+복사
+편집
+sudo gitlab-ctl reconfigure
+GitLab 웹 인터페이스 확인:
+
+브라우저에서 http://<VM_IP>로 접속.
+
+초기 로그인:
+
+사용자명: root
+
+비밀번호: /etc/gitlab/initial_root_password 파일에서 확인.
+
+========================== 비밀번호 
+ce+BC0f6LC02lb2K54X6ORBqcI21QZejRuyjqCX22R8=
+==========================
+
+
+=========================================================
+Gitlab 패키지 설치화인 
+ - RHEL , Rocky
+   rpm -qa | grep gitlab 
+ - ubuntu
+   dpkg -l | grep gitlab
+
+ Gitlab 서비스 동작 여부 확인 
+   sudo systemctl status gitlab-runsvdir.service
+   또는 
+   sudo gitlab-ctl status
+
+
+컨테이너로 설치된 경우(Podman / Docker)
+  - 컨테이너 목록확인 
+    podman ps -a | grep gitlab
+    또는 
+    docker ps -a | grep gitlab
+
+컨테이너 상태 확인 
+podman exec -it <컨테이너 이름 또는 ID> gitlab-ctl status
+
+설정파일 위치 
+ls /etc/gitlab
+또는
+ls /var/opt/gitlab
+
+Gitlab 버전 확인방법 
+sudo gitlab-rake gitlab:env:info
+
+=========================================================
+
+
+
+2. GitLab Runner 설치
+Root로 수행
+GitLab Runner는 CI/CD 파이프라인에서 작업(Job)을 실행하는 에이전트입니다.
+
+GitLab Runner 설치:
+
+bash
+복사
+편집
+curl -L https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh | sudo bash
+sudo dnf install -y gitlab-runner
+GitLab Runner 서비스 활성화:
+
+bash
+복사
+편집
+sudo systemctl enable gitlab-runner --now
+GitLab Runner 등록:
+
+GitLab 웹 UI에 로그인하여 프로젝트로 이동:
+
+Settings > CI/CD > Runners > New Registration 메뉴 선택.
+
+Runner 등록 명령 실행:
+
+bash
+복사
+편집
+sudo gitlab-runner register
+입력 정보:
+
+GitLab URL: http://<VM_IP>
+
+Registration Token: 위 메뉴에서 확인.
+
+Description: Runner 이름 (예: "my-runner").
+
+Executor: shell 또는 docker (Docker를 추천).
+
+
+------------------------------------------
+gitlab h1012380 계정 cicd runner 
+gitlab-runner register  --url http://192.168.0.74  --token glrt-bzoxCnA6MQp0OjMKdToybYPkNqmaILJgrO02IlHj6RA.1719vo0c8  test2
+------------------------------------------
+
+
+
+
+
+Gitlab runner 실행여부 확인 방법 
+systemctl status gitlab-runner
+
+Gitlab runner 설치(패키지) 확인방법 
+
+ RPM계열(RHEL, Rocky등)
+rpm -qa | grep gitlab-runner
+또는 
+dnf list installed | grep gitlab-runner
+
+dpkg 계열(Ubuntu등)
+dpkg -l | grep gitlab-runner 
+
+Gitlab runner 설치위치 
+which gitlab-runner 
+
+Gitlab runner 버전확인 
+gitlab-runner --version
+
+등록된 gitlab runner 목록 확인 
+gitlab-runner list
+ 
+
+
+
+
+3. GitLab Build 준비
+GitLab에서 빌드 작업은 .gitlab-ci.yml 파일로 정의합니다.
+
+새 GitLab 프로젝트 생성:
+
+GitLab 웹 UI에서 새 프로젝트를 생성:
+
+New Project > Create a Blank Project.
+
+.gitlab-ci.yml 파일 작성:
+
+로컬 시스템에서 다음 파일 생성:
+
+yaml
+복사
+편집
+stages:
+  - build
+  - test
+  - deploy
+
+build_job:
+  stage: build
+  script:
+    - echo "Building the application..."
+    - mkdir build
+    - echo "Build complete!" > build/status.txt
+
+test_job:
+  stage: test
+  script:
+    - echo "Running tests..."
+    - echo "Tests passed!"
+
+deploy_job:
+  stage: deploy
+  script:
+    - echo "Deploying the application..."
+    - echo "Deployment complete!"
+코드 푸시:
+
+GitLab 프로젝트의 URL 복사 후 로컬 저장소에 연결:
+
+bash
+복사
+편집
+git init
+git remote add origin http://<VM_IP>/<YOUR_PROJECT>.git
+.gitlab-ci.yml 파일 푸시:
+
+bash
+복사
+편집
+git add .gitlab-ci.yml
+git commit -m "Add CI/CD pipeline"
+git push -u origin main
+4. CI/CD 파이프라인 실행
+웹에서 확인
+Pipeline 실행 확인:
+
+GitLab 웹 UI로 이동: CI/CD > Pipelines 메뉴.
+
+새로 생성된 파이프라인 실행 상태를 확인.
+
+Job 로그 확인:
+
+각 Job(예: build_job, test_job, deploy_job)의 로그를 클릭하여 실행 결과 확인.
+
+요약
+GitLab 설치:
+
+RHEL 9에 GitLab 설치 및 설정.
+
+브라우저에서 GitLab 웹 UI 접속.
+
+GitLab Runner 설치:
+
+GitLab Runner 설치 및 GitLab과 연결.
+
+GitLab Build 설정:
+
+프로젝트 생성 및 .gitlab-ci.yml 추가.
+
+간단한 파이프라인으로 CI/CD 작업 실행.
+
+CI/CD 작업 실행 후 필요하면 파이프라인을 확장하거나 Docker 이미지 기반 빌드로 업그레이드할 수 있습니다. 추가 요청 사항이 있다면 알려주세요!
+
+
+
+
+
+
+

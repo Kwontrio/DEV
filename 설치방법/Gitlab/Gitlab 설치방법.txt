@@ -1,0 +1,46 @@
+
+TS-873a VM에 1개 만들고 
+OS : rhel 9 버전으로 설치방법 
+podman 4.4.1 버전으로만 설치할것임 . 해당버전만 가능   (root로 설치) 
+podman-compose 1.0.6 버전으로만 설치할것임 , 해당 버전만 가능  (root로 설치)
+podman-compose로 올릴 컨테이너는 GGitlab-ee:17.1.2 랑 같은 컨테이너 이미지 설치방법 (cicdadm 계정으로 설치)
+gitlab-ee:17.1.2 에는 ubuntu 22.04.4 LTS 에 Gitlab 4.19 들어가 있는 컨테이너 이미지이고
+gitlab-22:17.1.2 는 cicdadm 이라는 계정으로 실행할거고 hostname은 gitlab 
+root권한으로 podman , podman-compose 설치할거고 rootless로 할거야
+cicdadm 계정으로 podman-compose로 gitlab-ee:17.1.2 올릴거야 
+설치방법은 root로 하는지 cicdadm으로 하는지 명확하게 알려줘 
+
+https://chatgpt.com/share/68178371-02c8-8000-bfbf-ac4c03a5035b
+
+
+정상 방화벽 
+sudo firewall-cmd --permanent --add-port=8080/tcp
+
+
+podman-compose.yml 파일 내용 
+version: '3'
+services:
+  gitlab:
+    image: docker.io/gitlab/gitlab-ee:17.1.2-ee.0
+    container_name: gitlab
+    hostname: gitlab
+    restart: always
+    ports:
+      - "8080:80"     # 웹
+      - "8443:443"    # HTTPS
+      - "2222:22"     # SSH
+    volumes:
+      - ./config:/etc/gitlab
+      - ./logs:/var/log/gitlab
+      - ./data:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab'
+
+
+
+
+
+gitlab podman-compose 실행명령어 
+
+podman-compose -f podman-compose.yml up -d
